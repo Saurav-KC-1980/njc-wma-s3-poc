@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:s3="http://www.mulesoft.org/schema/mule/s3"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/s3 http://www.mulesoft.org/schema/mule/s3/current/mule-s3.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="addDocument" doc:id="b913ede5-c125-4865-9888-89aca0efe345" >
+		<set-variable value='#[output application/json --- payload.parts.document.headers."Content-Disposition".filename]' doc:name="filename" doc:id="e39514c1-66c7-4fe7-bc75-cd9472de07e9" variableName="filename"/>
+		<s3:put-object doc:name="Put Object" doc:id="96f40294-aa22-4962-ac33-0a16a5bb9245" config-ref="Amazon_S3_Configuration" bucketName="wma-documents" key='#[payload.parts.document.headers."Content-Disposition".filename]'>
+		</s3:put-object>
+		<ee:transform doc:name="Transform Message" doc:id="daab1a06-6c71-4e98-be56-75f05d19cb85" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	url: "https://wma-documents.s3.eu-north-1.amazonaws.com/" ++ vars.filename as String
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="c5fd62b4-2596-47ee-95c7-f0388a0b4dbc" />
+	</flow>
+</mule>
